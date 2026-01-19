@@ -29,7 +29,7 @@ android {
         versionName = "3.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders["appName"] = "openScale"
+        manifestPlaceholders["appName"] = "astroScale"
         manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher"
         manifestPlaceholders["appRoundIcon"] = "@mipmap/ic_launcher_round"
     }
@@ -111,7 +111,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             applicationIdSuffix = ".beta"
             versionNameSuffix = "-beta"
-            manifestPlaceholders["appName"] = "openScale beta"
+            manifestPlaceholders["appName"] = "astroScale beta"
             manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_beta"
             manifestPlaceholders["appRoundIcon"] = "@mipmap/ic_launcher_beta_round"
         }
@@ -121,7 +121,7 @@ android {
             signingConfig = signingConfigs.getByName("oss")
             applicationIdSuffix = ".oss"
             versionNameSuffix = "-oss"
-            manifestPlaceholders["appName"] = "openScale"
+            manifestPlaceholders["appName"] = "astroScale"
             manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_beta"
             manifestPlaceholders["appRoundIcon"] = "@mipmap/ic_launcher_beta_round"
         }
@@ -132,7 +132,7 @@ android {
         outputs.all {
             val output = this
             if (output is com.android.build.gradle.internal.api.BaseVariantOutputImpl) {
-                output.outputFileName = "openScale-${variant.buildType.name}.apk"
+                output.outputFileName = "astroScale-${variant.buildType.name}.apk"
             }
         }
     }
