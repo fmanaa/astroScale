@@ -73,9 +73,13 @@ fun RoundMeasurementIcon(
     backgroundTint : Color = MaterialTheme.colorScheme.surfaceVariant,
     iconTint: Color = Color.Black
 ) {
+    // If tint is unspecified (planets), fill the container. Otherwise, use the standard smaller size with padding.
+    val containerSize = size + 18.dp
+    val innerSize = if (iconTint == Color.Unspecified) containerSize else size
+
     Box(
         modifier = modifier
-            .size(size + 18.dp)
+            .size(containerSize)
             .aspectRatio(1f)
             .clip(CircleShape)
             .background(backgroundTint),
@@ -83,7 +87,7 @@ fun RoundMeasurementIcon(
     ) {
         MeasurementIcon(
             icon = icon,
-            size = size,
+            size = innerSize,
             tint = iconTint
         )
     }

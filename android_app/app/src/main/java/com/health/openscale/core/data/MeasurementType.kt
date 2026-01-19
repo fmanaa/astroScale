@@ -52,12 +52,8 @@ data class MeasurementType(
      */
     @Ignore // Room should not try to map this helper function to a DB column
     fun getDisplayName(context: Context): String {
-        return if (key == MeasurementTypeKey.CUSTOM) {
-            if (!name.isNullOrBlank()) {
-                name
-            } else {
-                context.getString(key.localizedNameResId)
-            }
+        return if (!name.isNullOrBlank()) {
+            name
         } else {
             context.getString(key.localizedNameResId)
         }

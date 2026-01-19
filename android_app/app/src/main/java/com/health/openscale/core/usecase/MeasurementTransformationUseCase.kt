@@ -373,4 +373,113 @@ class MeasurementTransformationUseCase @Inject constructor(
 
         return updatedValues
     }
+    /**
+     * Calculates and appends planetary weights based on the Earth weight.
+     *
+     * @param values The list of measurement values.
+     * @return A new list of measurement values including planetary weights.
+     */
+    suspend fun applyPlanetaryWeights(
+        measurement: Measurement,
+        values: List<MeasurementValue>
+    ): List<MeasurementValue> {
+        val types = query.getAllMeasurementTypes().first()
+        
+        // Planet name to gravitational multiplier map
+        val planetMultipliers = mapOf(
+            "Mercury" to 0.378f,
+            "Venus" to 0.907f,
+            "Earth" to 1.0f,
+            "Mars" to 0.377f,
+            "Jupiter" to 2.36f,
+            "Saturn" to 0.916f,
+            "Uranus" to 0.889f,
+            "Neptune" to 1.12f,
+            "Pluto" to 0.063f,
+            "Moon" to 0.166f
+        )
+
+        // Find the "Earth" type to identify the base weight
+        val earthType = types.find { it.name == "Earth" && it.key == MeasurementTypeKey.WEIGHT }
+        
+        // Find the input weight value. 
+        // We prioritize the value explicitly tagged as Earth.
+        // If not found, we look for any value with Key.WEIGHT (fallback for initial raw input).
+        var baseWeightVal: Float? = null
+        var baseWeightUnit: UnitType = UnitType.KG // Default assumption
+
+        if (earthType != null) {
+            val earthVal = values.find { it.typeId == earthType.id }
+            if (earthVal?.floatValue != null) {
+                baseWeightVal = earthVal.floatValue
+                baseWeightUnit = earthType.unit
+            }
+        }
+
+        if (baseWeightVal == null) {
+            // Fallback: Find ANY weight value
+            val anyWeightVal = values.find { value -> 
+                val type = types.find { it.id == value.typeId }
+                type?.key == MeasurementTypeKey.WEIGHT
+            }
+            if (anyWeightVal?.floatValue != null) {
+                 baseWeightVal = anyWeightVal.floatValue
+                 val type = types.find { it.id == anyWeightVal.typeId }
+                 baseWeightUnit = type?.unit ?: UnitType.KG
+            }
+        }
+
+        if (baseWeightVal == null) {
+            return values // No base weight found to calculate from
+        }
+
+        // Convert base weight to KG for calculation (multipliers are relative to Earth mass, ensuring consistency)
+        val weightKg = when (baseWeightUnit) {
+            UnitType.KG -> baseWeightVal
+            UnitType.LB -> ConverterUtils.toKilogram(baseWeightVal, WeightUnit.LB)
+            UnitType.ST -> ConverterUtils.toKilogram(baseWeightVal, WeightUnit.ST)
+            else -> baseWeightVal // Should be KG usually
+        }
+
+        val out = values.toMutableList()
+
+        // Helper to upsert
+        fun upsertFloat(typeId: Int, newValue: Float) {
+            val idx = out.indexOfFirst { it.typeId == typeId }
+            if (idx >= 0) {
+                out[idx] = out[idx].copy(floatValue = newValue)
+            } else {
+                out.add(
+                    MeasurementValue(
+                        id = 0,
+                        measurementId = measurement.id,
+                        typeId = typeId,
+                        floatValue = newValue
+                    )
+                )
+            }
+        }
+
+        // Iterate over all planet types and calculate/upsert values
+        planetMultipliers.forEach { (planetName, multiplier) ->
+            val planetType = types.find { it.name == planetName && it.key == MeasurementTypeKey.WEIGHT }
+            
+            if (planetType != null) {
+                // Calculate planet weight in KG
+                val planetWeightKg = weightKg * multiplier
+                
+                // Convert back to the planet type's unit (likely KG, but safe to handle)
+                val finalValue = when (planetType.unit) {
+                    UnitType.KG -> planetWeightKg
+                    UnitType.LB -> ConverterUtils.fromKilogram(planetWeightKg, WeightUnit.LB)
+                    UnitType.ST -> ConverterUtils.fromKilogram(planetWeightKg, WeightUnit.ST)
+                    else -> planetWeightKg
+                }
+                
+                upsertFloat(planetType.id, CalculationUtils.roundTo(finalValue))
+            }
+        }
+
+        return out
+    }
 }

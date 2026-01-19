@@ -194,10 +194,18 @@ class MeasurementFacade @Inject constructor(
      *
      * @return Result of the operation with the final measurement id on success.
      */
+    /**
+     * Saves (insert/update) a measurement with its values.
+     *
+     * @return Result of the operation with the final measurement id on success.
+     */
     suspend fun saveMeasurement(
         measurement: Measurement,
         values: List<MeasurementValue>
-    ) = crud.saveMeasurement(measurement, values)
+    ): Result<Int> {
+        val planetaryValues = transformation.applyPlanetaryWeights(measurement, values)
+        return crud.saveMeasurement(measurement, planetaryValues)
+    }
 
     /**
      * Saves a measurement from a BLE device, with special handling for assisted weighing.
@@ -223,13 +231,14 @@ class MeasurementFacade @Inject constructor(
 
         if (currentReferenceUser != null) {
             val finalValues = transformation.applyAssistedWeighing(measurement, values, currentReferenceUser)
-
-            crud.saveMeasurement(measurement, finalValues)
+            val planetaryValues = transformation.applyPlanetaryWeights(measurement, finalValues)
+            crud.saveMeasurement(measurement, planetaryValues)
         } else {
             val finalMeasurement = transformation.applySmartUserAssignment(measurement, values)
 
             if (finalMeasurement != null) {
-                crud.saveMeasurement(finalMeasurement, values)
+                val planetaryValues = transformation.applyPlanetaryWeights(finalMeasurement, values)
+                crud.saveMeasurement(finalMeasurement, planetaryValues)
             }
         }
     }

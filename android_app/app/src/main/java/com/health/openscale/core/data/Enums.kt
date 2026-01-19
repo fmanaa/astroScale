@@ -329,6 +329,18 @@ enum class MeasurementTypeIcon(val resource: IconResource) {
     IC_DATE(IconResource.PainterResource(R.drawable.ic_date)),
     IC_USER(IconResource.PainterResource(R.drawable.ic_user)),
 
+    // Planetary icons - All 10 icons now installed!
+    IC_PLANET_MERCURY(IconResource.PainterResource(R.drawable.ic_planet_mercury)),
+    IC_PLANET_VENUS(IconResource.PainterResource(R.drawable.ic_planet_venus)),
+    IC_PLANET_EARTH(IconResource.PainterResource(R.drawable.ic_planet_earth)),
+    IC_PLANET_MARS(IconResource.PainterResource(R.drawable.ic_planet_mars)),
+    IC_PLANET_JUPITER(IconResource.PainterResource(R.drawable.ic_planet_jupiter)),
+    IC_PLANET_SATURN(IconResource.PainterResource(R.drawable.ic_planet_saturn)),
+    IC_PLANET_URANUS(IconResource.PainterResource(R.drawable.ic_planet_uranus)),
+    IC_PLANET_NEPTUNE(IconResource.PainterResource(R.drawable.ic_planet_neptune)),
+    IC_PLANET_PLUTO(IconResource.PainterResource(R.drawable.ic_planet_pluto)),
+    IC_PLANET_MOON(IconResource.PainterResource(R.drawable.ic_planet_moon)),
+
     IC_M_HEIGHT(IconResource.VectorResource(Icons.Filled.Height)),
     IC_M_HEART_RATE(IconResource.VectorResource(Icons.Filled.Favorite)),
     IC_M_STEPS(IconResource.VectorResource(Icons.AutoMirrored.Filled.DirectionsWalk)),

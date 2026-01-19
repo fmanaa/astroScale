@@ -104,6 +104,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -642,6 +643,10 @@ fun OverviewScreen(
                                 }
                             }
 
+                            // Chart removed for planetary weight calculator - no trend tracking needed
+                            // Users will see all 10 planetary weights in the list below
+                            
+                            /* CHART DISABLED FOR PLANETARY WEIGHT MODE
                             // Chart
                             Box(modifier = Modifier.weight(localSplitterWeight)) {
                                 MeasurementChart(
@@ -705,6 +710,7 @@ fun OverviewScreen(
                                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                                 )
                             }
+                            */
 
                             // Goals Section
                             if (userGoals.isNotEmpty()) {
@@ -838,7 +844,7 @@ fun OverviewScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 itemsIndexed(
-                                    items = items,
+                                    items = items.take(1),
                                     key = { _, item -> item.measurementWithValues.measurement.id }
                                 ) { _, enrichedItem ->
                                     MeasurementCard(
@@ -1171,7 +1177,7 @@ fun MeasurementCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 8.dp)
+                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 0.dp)
             ) {
                 Text(
                     text = dateFormatted,
@@ -1222,7 +1228,7 @@ fun MeasurementCard(
             Column(
                 modifier = Modifier.padding(
                     start = 16.dp, end = 16.dp,
-                    top = if (pinnedValues.isNotEmpty()) 8.dp else 0.dp, // Add top padding only if there are pinned values
+                    top = 0.dp,
                     bottom = 0.dp // Bottom padding handled by AnimatedVisibility or Spacer later
                 )
             ) {
@@ -1411,6 +1417,22 @@ fun MeasurementValueRow(
         evalState.toColor()
     }
 
+    // Planet name to gravitational multiplier map (repeated here for display purposes)
+    val planetMultipliers = remember {
+        mapOf(
+            "Mercury" to 0.378f,
+            "Venus" to 0.907f,
+            "Earth" to 1.0f,
+            "Mars" to 0.377f,
+            "Jupiter" to 2.36f,
+            "Saturn" to 0.916f,
+            "Uranus" to 0.889f,
+            "Neptune" to 1.12f,
+            "Pluto" to 0.063f,
+            "Moon" to 0.166f
+        )
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1425,72 +1447,49 @@ fun MeasurementValueRow(
         ) {
             RoundMeasurementIcon(
                 icon = iconMeasurementType.resource,
-                backgroundTint = Color(type.color)
+                backgroundTint = Color(type.color),
+                iconTint = Color.Unspecified
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(verticalArrangement = Arrangement.Center) {
                 Text(
                     text = type.getDisplayName(context),
                     style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 1
                 )
 
-                // Show trend only for numeric types with a difference
-                if (difference != null && trend != Trend.NOT_APPLICABLE) {
-                    Spacer(modifier = Modifier.height(1.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        val trendIconVector = when (trend) {
-                            Trend.UP   -> Icons.Filled.ArrowUpward
-                            Trend.DOWN -> Icons.Filled.ArrowDownward
-                            Trend.NONE -> null
-                            else       -> null
-                        }
-                        val subtle = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        if (trendIconVector != null) {
-                            Icon(
-                                imageVector = trendIconVector,
-                                contentDescription = trend.name,
-                                tint = subtle,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Spacer(modifier = Modifier.width(3.dp))
-                        }
-                        Text(
-                            text = when (type.inputType) {
-                                InputFieldType.FLOAT, InputFieldType.INT ->
-                                    LocaleUtils.formatValueForDisplay(
-                                        value = difference.toString(),
-                                        unit = type.unit,
-                                        includeSign = (trend != Trend.NONE)
-                                    )
-                                else -> ""
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = subtle
-                        )
-                    }
-                } else if (type.inputType == InputFieldType.FLOAT || type.inputType == InputFieldType.INT) {
-                    // Keep vertical spacing consistent when no trend is shown
+                // Show planetary factor instead of trend
+                val factor = planetMultipliers[type.getDisplayName(context)]
+                if (factor != null) {
+                    Text(
+                        text = "Factor: $factor",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                } else if (type.getDisplayName(context) == "Earth") { // Fallback if map lookup fails for Earth
+                    Text(
+                        text = "Factor: 1.0",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                } else {
+                     // Keep vertical spacing consistent
                     Spacer(modifier = Modifier.height((MaterialTheme.typography.bodySmall.fontSize.value + 2).dp))
                 }
             }
         }
 
-        // Right side: value + evaluation symbol
+        // Right side: value ONLY (removed evaluation symbol)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 8.dp)
         ) {
             Text(
                 text = displayValue,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.End
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = evalSymbol,
-                color = evalColor,
-                style = MaterialTheme.typography.bodyLarge
             )
         }
     }

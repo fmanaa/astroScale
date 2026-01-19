@@ -1,6 +1,6 @@
 <resources>
     <!-- App & General -->
-    <string name="app_name" translatable="false">openScale</string>
+    <string name="app_name" translatable="false">astroScale</string>
     <string name="app_logo_content_description">App Logo</string>
     <string name="text_none">None</string>
     <string name="not_available">N/A</string>
@@ -36,7 +36,7 @@
     <string name="no_entries_found">No entries available.</string>
 
     <!-- Route & Screen Titles -->
-    <string name="route_title_overview">Overview</string>
+    <string name="route_title_overview">AstroScale</string>
     <string name="route_title_graph">Charts</string>
     <string name="route_title_table">Table</string>
     <string name="route_title_statistics">Statistics</string>

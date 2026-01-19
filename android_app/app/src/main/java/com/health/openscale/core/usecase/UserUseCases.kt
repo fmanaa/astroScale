@@ -17,6 +17,8 @@
  */
 package com.health.openscale.core.usecase
 
+import com.health.openscale.core.data.ActivityLevel
+import com.health.openscale.core.data.GenderType
 import com.health.openscale.core.data.User
 import com.health.openscale.core.database.DatabaseRepository
 import com.health.openscale.core.facade.SettingsFacade
@@ -106,9 +108,19 @@ class UserUseCases @Inject constructor(
                 settingsFacade.setCurrentUserId(firstId)
                 firstId
             } else {
-                // No users -> keep selection null
-                settingsFacade.setCurrentUserId(null)
-                null
+                // Auto-create default user if none exists
+                val defaultUser = User(
+                    name = "User",
+                    // Approximate timestamp for Jan 1, 2000
+                    birthDate = 946684800000L,
+                    gender = GenderType.MALE,
+                    heightCm = 175f,
+                    activityLevel = ActivityLevel.MODERATE,
+                    useAssistedWeighing = false
+                )
+                val newId = databaseRepository.insertUser(defaultUser).toInt()
+                settingsFacade.setCurrentUserId(newId)
+                newId
             }
         }
     }
